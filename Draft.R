@@ -6,12 +6,12 @@ train_sample <- fread("train_sample.csv",
                colClasses=c("ip"="numeric","app"="numeric","device"="numeric",
                             "os"="numeric","channel"="numeric","click_time"="character",
                             "is_attributed"="numeric"))
-test <- fread("test.csv", 
-              select =c("ip", "app", "device", "os", "channel", "click_time"),
-              showProgress=F,
-              colClasses=c("ip"="numeric","app"="numeric","device"="numeric",
-                           "os"="numeric","channel"="numeric",
-                           "click_time"="character"))
+# test <- fread("test.csv", 
+#               select =c("ip", "app", "device", "os", "channel", "click_time"),
+#               showProgress=F,
+#               colClasses=c("ip"="numeric","app"="numeric","device"="numeric",
+#                            "os"="numeric","channel"="numeric",
+#                            "click_time"="character"))
 
 
 train_sample %>% str()
