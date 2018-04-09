@@ -38,3 +38,37 @@ valid <- train_sample[val, ]
 
 rm(train_sample)
 gc(reset = T)
+
+str(under)
+
+model_train <- xgb.DMatrix(data=data.matrix(under[,-7]),label=under$is_attributed)
+model_val <- xgb.DMatrix(data=data.matrix(valid[,-7]))
+
+invisible(gc())
+
+params <- list(objective = "binary:logistic",
+               booster = "gbtree",
+               eval_metric = "auc",
+               nthread = 7,
+               eta = 0.05,
+               max_depth = 10,
+               gamma = 0.9,
+               subsample = 0.8,
+               colsample_bytree = 0.8,
+               scale_pos_weight = 50,
+               nrounds = 100)
+
+myxgb_model <- xgb.train(params, model_train, params$nrounds, list(val = model_val), print_every_n = 20, early_stopping_rounds = 50)
+
+
+
+param <- list(max_depth = 2,
+              eta = 1,
+              objective = "binary:logistic",
+              eval_metric = "auc")
+
+bst <- xgb.train(param,
+                 model_train,
+                 nrounds = 100,
+                 print_every_n = 10)
+
