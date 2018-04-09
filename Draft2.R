@@ -1,4 +1,4 @@
-pacman::p_load(ggthemes,lubridate,caret,tidyverse,e1071,gridExtra,data.table,rpart.plot,randomForest,rpart,ROSE,DMwR,xgboost)
+pacman::p_load(GGally,ggthemes,lubridate,caret,tidyverse,e1071,gridExtra,data.table,rpart.plot,randomForest,rpart,ROSE,DMwR,xgboost)
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, na.strings=c("NA","NaN","?", ""))
 
@@ -91,3 +91,14 @@ vis_bar(train_sample,'hour')
 vis_bar(train_sample,'wday')
 
 vis_bar_multi(train_sample,'hour','wday')
+
+train_sample$is_attributed <- train_sample$is_attributed %>% as.factor()
+
+ggpairs(train_sample[,c('ip','app','device','os','channel',"wday",'hour',"is_attributed")],
+        aes(color=is_attributed,alpha=.5))
+
+ggplot(train,aes(x=wday,fill=is_attributed))+geom_density(col=NA,alpha=0.35)+
+  ggtitle("days v/s click")+
+  xlab("Day of a week v/s Is_attributed ") +
+  ylab("Total Count") +
+  labs(fill = "is_attributed")
