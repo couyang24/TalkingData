@@ -21,10 +21,10 @@ neg <- sample(which(train$is_attributed==0),length(pos))
 
 train_sample <- train[c(pos,neg),]
 
-train_sample %>% ggplot(aes(hour,fill=as.factor(is_attributed)))+geom_bar()
-train_sample %>% ggplot(aes(wday,fill=as.factor(is_attributed)))+geom_bar()
+# train_sample %>% ggplot(aes(hour,fill=as.factor(is_attributed)))+geom_bar()
+# train_sample %>% ggplot(aes(wday,fill=as.factor(is_attributed)))+geom_bar()
 
-train_sample %>% group_by(hour) %>% summarise(avg_attr=mean(is_attributed),count=n()) %>% View()
+train_sample %>% group_by(hour) %>% summarise(avg_attr=mean(is_attributed),count=n())
 train_sample %>% group_by(wday) %>% summarise(avg_attr=mean(is_attributed))
 
 ## Visualize Discrete Single Variables
@@ -97,8 +97,3 @@ train_sample$is_attributed <- train_sample$is_attributed %>% as.factor()
 ggpairs(train_sample[,c('ip','app','device','os','channel',"wday",'hour',"is_attributed")],
         aes(color=is_attributed,alpha=.5))
 
-ggplot(train,aes(x=wday,fill=is_attributed))+geom_density(col=NA,alpha=0.35)+
-  ggtitle("days v/s click")+
-  xlab("Day of a week v/s Is_attributed ") +
-  ylab("Total Count") +
-  labs(fill = "is_attributed")
