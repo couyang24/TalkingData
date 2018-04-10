@@ -4,11 +4,26 @@ train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
 
 train %>% str()
 
-sapply(train,function(x) sum(is.na(x)))
+unique_acc <- train %>% sapply(function(x) length(unique(x))) %>% as.data.frame() %>% rownames_to_column()
+
+colnames(unique_acc) <- c("var","num")
+
+unique_acc %>% ggplot(aes(reorder(var,-num),log(num),fill=var)) + geom_col() + 
+  labs(title='Unique Variable Analysis',subtitle="Unique Count in Log Value for Visualization", x = "Variables", 
+       y = "log value of unique count", caption="Source: Kaggle TalkingData Challenge") + 
+  theme_economist() +
+  theme(legend.position="none")
+  
+# sapply(train,function(x) sum(is.na(x)))
 colSums(is.na(train))
 
-train %>% filter(is.na(attributed_time)) %>% select(is_attributed) %>% summary()
-train %>% filter(!is.na(attributed_time)) %>% select(is_attributed) %>% summary()
+
+train %>% select(is_attributed) %>% table()
+# train %>% filter(is.na(attributed_time)) %>% select(is_attributed) %>% summary()
+# train %>% filter(!is.na(attributed_time)) %>% select(is_attributed) %>% summary()
+
+
+
 
 summary(train$click_time %>% as.Date())
 
