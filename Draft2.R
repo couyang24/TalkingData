@@ -15,7 +15,7 @@ unique_acc %>% ggplot(aes(reorder(var,-num),log(num),fill=var)) + geom_col() +
   theme(legend.position="none")
 rm(unique_acc)
   
-# sapply(train,function(x) sum(is.na(x)))
+sapply(train,function(x) sum(is.na(x)))
 colSums(is.na(train))
 
 
