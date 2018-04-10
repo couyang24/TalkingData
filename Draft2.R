@@ -45,7 +45,7 @@ attr_train %>% filter(wait_time<500) %>%  ggplot(aes(wait_time)) + geom_density(
 train <- train %>% mutate(wday=weekdays(as.Date(click_time)),hour=hour(click_time))
 
 head(train)
-
+tail(train)
 
 
 
