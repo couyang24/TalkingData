@@ -12,7 +12,9 @@ unique_acc %>% ggplot(aes(reorder(var,-num),log(num),fill=var)) + geom_col() +
   labs(title='Unique Variable Analysis',subtitle="Unique Count in Log Value for Visualization", x = "Variables", 
        y = "log value of unique count", caption="Source: Kaggle TalkingData Challenge") + 
   theme_economist() +
-  theme(legend.position="none")
+  theme(legend.position="none")+
+  geom_label(aes(label=num), size=4, alpha=.7)
+
 rm(unique_acc)
   
 sapply(train,function(x) sum(is.na(x)))
