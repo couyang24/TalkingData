@@ -29,15 +29,33 @@ train %>% filter(!attributed_time>click_time)
 train$click_time <- ymd_hms(train$click_time)
 train$attributed_time <- ymd_hms(train$attributed_time)
 
-train %>% filter(is_attributed==1) %>% mutate(wait_time=difftime(attributed_time,click_time))
+attr_train <- train %>% filter(is_attributed==1) %>% mutate(wait_time=difftime(attributed_time,click_time))
 
+# attr_train %>% ggplot(aes(wait_time)) + geom_histogram(bins=100)
 
+# attr_train %>% select(wait_time) %>% sapply(as.numeric) %>% median()
 
-summary(train$click_time %>% as.Date())
+attr_train %>% ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,col='firebrick') + 
+  geom_vline(xintercept = 300, lwd=1, lty=2, alpha=.6)
+
+attr_train %>% filter(wait_time<500) %>%  ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,col='firebrick') + 
+  geom_vline(xintercept = 38, lwd=2, lty=2, alpha=.6)
+
 
 train <- train %>% mutate(wday=weekdays(as.Date(click_time)),hour=hour(click_time))
 
 head(train)
+
+
+
+
+
+
+
+
+
+
+
 
 pos <- which(train$is_attributed==1)
 neg <- sample(which(train$is_attributed==0),length(pos))
