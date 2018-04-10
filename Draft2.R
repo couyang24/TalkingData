@@ -13,15 +13,23 @@ unique_acc %>% ggplot(aes(reorder(var,-num),log(num),fill=var)) + geom_col() +
        y = "log value of unique count", caption="Source: Kaggle TalkingData Challenge") + 
   theme_economist() +
   theme(legend.position="none")
+rm(unique_acc)
   
 # sapply(train,function(x) sum(is.na(x)))
 colSums(is.na(train))
 
 
 train %>% select(is_attributed) %>% table()
-# train %>% filter(is.na(attributed_time)) %>% select(is_attributed) %>% summary()
-# train %>% filter(!is.na(attributed_time)) %>% select(is_attributed) %>% summary()
 
+train %>% filter(is.na(attributed_time)) %>% select(is_attributed) %>% summary()
+train %>% filter(!is.na(attributed_time)) %>% select(is_attributed) %>% summary()
+
+train %>% filter(!attributed_time>click_time)
+
+train$click_time <- ymd_hms(train$click_time)
+train$attributed_time <- ymd_hms(train$attributed_time)
+
+train %>% filter(is_attributed==1) %>% mutate(wait_time=difftime(attributed_time,click_time))
 
 
 
