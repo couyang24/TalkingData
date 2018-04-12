@@ -76,13 +76,16 @@ app <- train %>% select(app) %>% count() %>% arrange(desc(freq)) %>% filter(freq
   geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='Application',y='Number')
 
-grid.arrange(os,device,channel,app,layout_matrix=matrix(c(1,2,
-                                                          3,4),nrow=2))
+grid.arrange(os,device,channel,app,layout_matrix=t(matrix(c(1,2,
+                                                            3,4),nrow=2)))
 
 
+train %>% select(ip) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 200) %>% 
+  ggplot(aes(reorder(ip,-freq),freq)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+  theme_economist() + labs(x='IP',y='Number')
 
-
-
+train %>% select(ip,is_attributed) %>% group_by(ip) %>% count()
 
 
 
