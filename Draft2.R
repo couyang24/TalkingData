@@ -56,6 +56,29 @@ pacman::p_load(knitr, kableExtra, DT, pryr, tidyverse, data.table, fasttime, woe
 
 train %>% head(50) %>% datatable()
 
+os <- train %>% select(os) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
+  ggplot(aes(reorder(os,-freq),freq)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+  theme_economist() + labs(x='Operating System',y='Number')
+
+device <- train %>% select(device) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 5) %>% 
+  ggplot(aes(reorder(device,-freq),freq)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+  theme_economist() + labs(x='Device',y='Number')
+
+channel <- train %>% select(channel) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
+  ggplot(aes(reorder(channel,-freq),freq)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+  theme_economist() + labs(x='Channel',y='Number')
+
+app <- train %>% select(app) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
+  ggplot(aes(reorder(app,-freq),freq)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+  theme_economist() + labs(x='Application',y='Number')
+
+grid.arrange(os,device,channel,app,layout_matrix=matrix(c(1,2,
+                                                          3,4),nrow=2))
+
 
 
 
