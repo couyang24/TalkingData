@@ -41,13 +41,18 @@ attr_train %>% ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,c
 attr_train %>% filter(wait_time<500) %>%  ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,col='firebrick') + 
   geom_vline(xintercept = 38, lwd=2, lty=2, alpha=.6)
 
+attr_train %>% filter(wait_time<500) %>%  ggplot(aes(wait_time)) + 
+  geom_histogram(fill='firebrick',alpha=.7,col='firebrick',binwidth = 3) + 
+  geom_vline(xintercept = 34, lwd=1.5, lty=2, alpha=.6)
 
 train <- train %>% mutate(wday=weekdays(as.Date(click_time)),hour=hour(click_time))
 
 head(train)
 tail(train)
 
+pacman::p_load(knitr, kableExtra, DT, pryr, tidyverse, data.table, fasttime, woeBinning, lubridate, tictoc, DescTools)
 
+train %>% head(50) %>% datatable()
 
 
 
