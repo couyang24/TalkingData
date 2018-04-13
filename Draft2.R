@@ -56,33 +56,43 @@ pacman::p_load(knitr, kableExtra, DT, pryr, tidyverse, data.table, fasttime, woe
 
 train %>% head(50) %>% datatable()
 
-os <- train %>% select(os) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
-  ggplot(aes(reorder(os,-freq),freq)) + geom_col(fill='steelblue') + 
-  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+
+check_freq <- function(dataset){
+  
+os <- dataset %>% group_by(os) %>% count() %>% arrange(desc(n)) %>% head(10) %>% 
+  ggplot(aes(reorder(os,-n),n)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=n), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='Operating System',y='Number')
 
-device <- train %>% select(device) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 5) %>% 
-  ggplot(aes(reorder(device,-freq),freq)) + geom_col(fill='steelblue') + 
-  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+device <- dataset %>% group_by(device) %>% count() %>% arrange(desc(n)) %>% head(10) %>% 
+  ggplot(aes(reorder(device,-n),n)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=n), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='Device',y='Number')
 
-channel <- train %>% select(channel) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
-  ggplot(aes(reorder(channel,-freq),freq)) + geom_col(fill='steelblue') + 
-  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+channel <- dataset %>% group_by(channel) %>% count() %>% arrange(desc(n)) %>% head(10) %>% 
+  ggplot(aes(reorder(channel,-n),n)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=n), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='Channel',y='Number')
 
-app <- train %>% select(app) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 2300) %>% 
-  ggplot(aes(reorder(app,-freq),freq)) + geom_col(fill='steelblue') + 
-  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+app <- dataset %>% group_by(app) %>% count() %>% arrange(desc(n)) %>% head(10) %>% 
+  ggplot(aes(reorder(app,-n),n)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=n), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='Application',y='Number')
 
 grid.arrange(os,device,channel,app,layout_matrix=t(matrix(c(1,2,
                                                             3,4),nrow=2)))
 
+}
 
-train %>% select(ip) %>% count() %>% arrange(desc(freq)) %>% filter(freq > 200) %>% 
-  ggplot(aes(reorder(ip,-freq),freq)) + geom_col(fill='steelblue') + 
-  geom_label(aes(label=freq), col="steelblue", size=3, alpha=.7) + 
+
+train %>% check_freq()
+train %>% filter(is_attributed==1) %>% check_freq()
+train %>% filter(is_attributed==0) %>% check_freq()
+
+
+train %>% group_by(ip) %>% count() %>% arrange(desc(n)) %>% filter(n > 200) %>% 
+  ggplot(aes(reorder(ip,-n),n)) + geom_col(fill='steelblue') + 
+  geom_label(aes(label=n), col="steelblue", size=3, alpha=.7) + 
   theme_economist() + labs(x='IP',y='Number')
 
 train %>% select(ip,is_attributed) %>% group_by(ip) %>% count()
