@@ -1,31 +1,19 @@
-improve2 <- fread("improve2.csv")
-wordbatch_fm_ftrl <- fread("wordbatch_fm_ftrl.csv")
+if (!require(pacman)) install.packages(pacman)
+pacman::p_load(data.table, tidyverse)
+result1 <- fread("my_lgb_sub_0.9772.csv")
+result2 <- fread("sub_it4 (1).csv")
+result3 <- fread("lgb_Usrnewness.csv")
 
-library(tidyverse)
-improve2 %>% str()
 
-ensemble <- improve2 %>% left_join(wordbatch_fm_ftrl,by='click_id')
+ensemble <- result1 %>% left_join(result2,by='click_id') %>% left_join(result3, by="click_id")
 
-ensembling_submission <- ensemble %>% mutate(is_attributed=(is_attributed.x*.973+is_attributed.y*.9712)/(.9730+.9712)) %>% select(click_id,is_attributed)
+
+ensemble %>% str()
+result1 %>% str()
+result2 %>% str()
+result3 %>% str()
+
+
+ensembling_submission <- ensemble %>% mutate(is_attributed=(is_attributed.x*.25+is_attributed.y*.5+is_attributed*.25)) %>% select(click_id,is_attributed)
 write.csv(ensembling_submission,"ensembling_submission.csv",row.names = F)
 
-library(data.table)
-library(ggplot2)
-library(DT)
-library(magrittr)
-library(corrplot)
-library(Rmisc)
-library(ggalluvial)
-library(caret)
-library(ModelMetrics)
-require(scales)
-library(irlba)
-library(forcats)
-library(forecast)
-library(TSA)
-library(zoo)
-
-library(devtools)
-options(devtools.install.args = "--no-multiarch") # if you have 64-bit R only, you can skip this
-install_github("Microsoft/LightGBM", subdir = "R-package")
-library(lightgbm)
