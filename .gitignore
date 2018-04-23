@@ -11,5 +11,9 @@ ensembling_submission.csv
 improve2.csv
 ensembling_submission2.csv
 wordbatch_fm_ftrl.csv
+<<<<<<< HEAD
 .csv
 *.csv
+=======
+LightGBM/
+>>>>>>> 012943bee4d2e4c08d2855080c024e5c91285983
