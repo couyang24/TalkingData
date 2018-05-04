@@ -1,9 +1,6 @@
 pacman::p_load(tidyverse, lubridate, caret, DMwR, ROSE, randomForest, rpart, 
-<<<<<<< HEAD
                rpart.plot, data.table, e1071, gridExtra, ggthemes, xgboost)
-=======
-               rpart.plot, data.table, e1071, gridExtra, ggthemes)
->>>>>>> a061bc46246b6cd960ed2039e1f76c80d5ffbe19
+
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
               na.strings=c("NA","NaN","?", ""))

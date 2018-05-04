@@ -45,5 +45,42 @@ train %>% dim()
 train %>% glimpse()
 train %>% group_by(device) %>% summarise(count=n())
 
+dtest <- xgb.DMatrix(data = data.matrix(tr_te[-tri]))
+tr_te <- tr_te[tri]; gc()
+tri <- caret::createDataPartition(y, p = 0.9, list = F)
+dtrain <- xgb.DMatrix(data = data.matrix(tr_te[tri]), label = y[tri])
+dval <- xgb.DMatrix(data = data.matrix(tr_te[-tri]), label = y[-tri])
+cols <- colnames(tr_te)
 
+rm(tr_te, y, tri); gc()
+
+#---------------------------
+cat("Training model...\n")
+p <- list(objective = "binary:logistic",
+          booster = "gbtree",
+          eval_metric = "auc",
+          nthread = 8,
+          eta = 0.07,
+          max_depth = 4,
+          min_child_weight = 96,
+          gamma = 6.1142,
+          subsample = 1,
+          colsample_bytree = 0.5962,
+          colsample_bylevel = 0.5214,
+          alpha = 0,
+          lambda = 21.0033,
+          max_delta_step = 5.0876,
+          scale_pos_weight = 150,
+          nrounds = 2000)
+
+m_xgb <- xgb.train(p, dtrain, p$nrounds, list(val = dval), print_every_n = 50, early_stopping_rounds = 150)
+
+(imp <- xgb.importance(cols, model=m_xgb))
+xgb.plot.importance(imp, top_n = 30)
+
+#---------------------------
+cat("Creating submission file...\n")
+subm <- fread("../input/sample_submission.csv") 
+subm[, is_attributed := round(predict(m_xgb, dtest), 6)]
+fwrite(subm, paste0("dt_xgb_", m_xgb$best_score, ".csv"))
 
