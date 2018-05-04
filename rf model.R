@@ -1,5 +1,4 @@
-
-pacman::p_load(knitr, tidyverse, highcharter, data.table, lubridate, pROC, tictoc, DescTools, xgboost)
+pacman::p_load(knitr, tidyverse, highcharter, data.table, lubridate, pROC, tictoc, DescTools)
 
 train <- fread("train_sample.csv", drop = c("attributed_time"), showProgress=F)
 
@@ -24,7 +23,8 @@ train <- train %>%
   add_count(ip, hour, device) %>% rename("nip_h_dev" = n) %>%
   select(-c(ip))
 
-# # Split half and half
+
+# Split half and half
 # pos <- which(train$is_attributed==1)
 # neg <- sample(which(train$is_attributed==0),length(pos))
 # 
@@ -36,50 +36,14 @@ train_sample <- train
 
 inTrain <- createDataPartition(train_sample$app, p=.7, list=F)
 train_sample <- train_sample %>% lapply(as.numeric) %>% as_data_frame()
-y_train <- train_sample$is_attributed[inTrain]
-y_valid <- train_sample$is_attributed[-inTrain]
-train_sample$is_attributed <- NULL
 train_val <- train_sample[inTrain,]
 valid_val <- train_sample[-inTrain,]
-
 rm(inTrain, train_sample)
 
-dtrain <- xgb.DMatrix(data = data.matrix(train_val), label = y_train)
-dval <- xgb.DMatrix(data = data.matrix(valid_val), label = y_valid)
+train_val$is_attributed <- as.factor(train_val$is_attributed)
 
-rm(); invisible(gc())
-
-params <- list(objective = "binary:logistic",
-               booster = "gbtree",
-               eval_metric = "auc",
-               nthread = 7,
-               eta = 0.05,
-               max_depth = 10,
-               gamma = 0.9,
-               subsample = 0.8,
-               colsample_bytree = 0.8,
-               scale_pos_weight = 50,
-               nrounds = 2000)
-
-xgb_model <- xgb.train(params, dtrain, params$nrounds, list(val = dval), print_every_n = 20, early_stopping_rounds = 150)
-
-
-xgb_pred <- predict(xgb_model,newdata = dval)
-
-xgb_pred1 <- if_else(xgb_pred>=.5,1,0)
-
-confusionMatrix(xgb_pred1,y_valid)
-
-imp <- xgb.importance(colnames(train_val), model=myxgb_model)
-
-imp %>% kable()
-
-xgb.plot.importance(imp, top_n = 30)
-
-xgb_pred = predict(xgb_model, test)
-sub <- fread("../input/sample_submission.csv")
-sub[, is_attributed := xgb_pred]
-fwrite(sub, "xgb.csv")
-
-
-
+rf_model <- randomForest(is_attributed~., data=train_val, method = "class")
+rf_pred  <- predict(rf_model, newdata = valid_val, type="class")
+confusionMatrix(rf_pred,valid_val$is_attributed)
+varImpPlot(rf_model)
+rm(rf_model,rf_pred)
