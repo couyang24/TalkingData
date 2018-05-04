@@ -1,4 +1,3 @@
-
 pacman::p_load(knitr, tidyverse, highcharter, data.table, lubridate, pROC, tictoc, DescTools, xgboost)
 
 train <- fread("train_sample.csv", drop = c("attributed_time"), showProgress=F)
@@ -47,8 +46,11 @@ rm(inTrain, train_sample)
 dtrain <- xgb.DMatrix(data = data.matrix(train_val), label = y_train)
 dval <- xgb.DMatrix(data = data.matrix(valid_val), label = y_valid)
 
-rm(); invisible(gc())
+invisible(gc())
 
+
+
+# xgboost 1
 params <- list(objective = "binary:logistic",
                booster = "gbtree",
                eval_metric = "auc",
@@ -61,20 +63,54 @@ params <- list(objective = "binary:logistic",
                scale_pos_weight = 50,
                nrounds = 2000)
 
-xgb_model <- xgb.train(params, dtrain, params$nrounds, list(val = dval), print_every_n = 20, early_stopping_rounds = 150)
-
+xgb_model <- xgb.train(params, dtrain, params$nrounds, list(val = dval), 
+                       print_every_n = 100, early_stopping_rounds = 300)
+rm(params)
 
 xgb_pred <- predict(xgb_model,newdata = dval)
 
-xgb_pred1 <- if_else(xgb_pred>=.5,1,0)
+xgb_pred_result <- if_else(xgb_pred>=.5,1,0)
 
-confusionMatrix(xgb_pred1,y_valid)
+confusionMatrix(xgb_pred_result,y_valid)
 
-imp <- xgb.importance(colnames(train_val), model=myxgb_model)
+imp <- xgb.importance(colnames(train_val), model=xgb_model)
 
 imp %>% kable()
 
 xgb.plot.importance(imp, top_n = 30)
+
+# xgboost 2
+params <- list( objective   = "binary:logistic", 
+                grow_policy = "lossguide",
+                # tree_method = "hist",
+                eval_metric = "auc", 
+                max_leaves  = 5, 
+                max_delta_step = 7,
+                scale_pos_weight = 9.7,
+                eta = 0.1, 
+                max_depth = 3, 
+                subsample = 0.9, 
+                min_child_weight = 0,
+                colsample_bytree = 0.7, 
+                random_state = 84
+)
+
+xgb_model <- xgb.train(data = dtrain, params = params, 
+                       silent = 1, watchlist = list(valid = dval), nthread = 4, 
+                       nrounds = 2000, print_every_n = 100, early_stopping_rounds = 300)
+
+xgb_pred <- predict(xgb_model,newdata = dval)
+
+xgb_pred_result <- if_else(xgb_pred>=.5,1,0)
+
+confusionMatrix(xgb_pred_result,y_valid)
+
+imp <- xgb.importance(colnames(train_val), model=xgb_model)
+
+imp %>% kable()
+
+xgb.plot.importance(imp, top_n = 30)
+
 
 xgb_pred = predict(xgb_model, test)
 sub <- fread("../input/sample_submission.csv")
