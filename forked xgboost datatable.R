@@ -9,6 +9,9 @@ test <- fread("../input/test.csv", drop = c("click_id"), showProgress=F)
 
 set.seed(0)
 train <- train[sample(.N, 30e6), ]
+train <-fread('train_sample.csv', stringsAsFactors = FALSE, drop = c("attributed_time"), data.table = T, 
+              na.strings=c("NA","NaN","?", ""))
+
 
 #---------------------------
 cat("Preprocessing...\n")
@@ -18,7 +21,7 @@ tr_te <- rbind(train, test, fill = T)
 
 rm(train, test); gc()
 
-tr_te[, `:=`(hour = hour(click_time),
+train[, `:=`(hour = hour(click_time),
              min = minute(click_time),
              sec = second(click_time),
              click_time = fastPOSIXct(click_time))
@@ -35,3 +38,12 @@ tr_te[, `:=`(hour = hour(click_time),
                           ][, ip_os_f := .N, by = "ip,os"
                             ][, ip_chan_f := .N, by = "ip,channel"
                               ][, c("ip", "is_attributed") := NULL]
+
+
+train %>% summary()
+train %>% dim()
+train %>% glimpse()
+train %>% group_by(device) %>% summarise(count=n())
+
+
+
