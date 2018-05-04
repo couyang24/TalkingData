@@ -76,6 +76,6 @@ valid_val_svm$is_attributed <- NA
 svm_model <- svm(is_attributed~., data = train_val, method = "class")
 svm_pred  <- predict(svm_model, newdata = valid_val_svm, type ="class")
 confusionMatrix(valid_val$is_attributed, svm_pred)
-rm(svm_model,svm_pred)
+rm(svm_model,svm_pred,valid_val_svm)
 
 gc()
