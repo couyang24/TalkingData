@@ -1,6 +1,5 @@
-
 pacman::p_load(tidyverse, lubridate, caret, DMwR, ROSE, randomForest, rpart, 
-               rpart.plot, data.table, e1071, gridExtra)
+               rpart.plot, data.table, e1071, gridExtra, ggthemes)
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
               na.strings=c("NA","NaN","?", ""))
@@ -79,3 +78,4 @@ svm_pred  <- predict(svm_model, newdata = valid_val_svm, type ="class")
 confusionMatrix(valid_val$is_attributed, svm_pred)
 rm(svm_model,svm_pred)
 
+gc()
