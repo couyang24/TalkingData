@@ -80,19 +80,3 @@ varImpPlot(rf_model)
 rm(rf_model,rf_pred)
 
 # xgboost
-
-(dtrain1 <- train_val[, colnames(train_val) != "is_attributed"])
-
-rownames(dtrain1) <- 1:nrow(dtrain1)
-
-dtrain1$weekdays <- as.numeric(dtrain1$weekdays)
-
-dtrain1 %>% str()
-
-dtrain <- xgb.DMatrix(as.matrix(dtrain1), 
-                      label = train_val$is_attributed)
-
-dvalid <- xgb.DMatrix(as.matrix(valid_val[, colnames(valid_val) != "is_attributed"]), 
-                      label = valid_val$is_attributed)
-
-gc()

@@ -1,86 +1,70 @@
 library(data.table)
 library(xgboost)
 library(fasttime)
+pacman::p_load(knitr, tidyverse, highcharter, data.table, lubridate, pROC, tictoc, DescTools)
 
-#---------------------------
-cat("Loading data...\n")
-train <- fread("train.csv", drop = c("attributed_time"), showProgress=F)[(.N - 50e6):.N] 
-test <- fread("../input/test.csv", drop = c("click_id"), showProgress=F)
+train <- fread("train_sample.csv", drop = c("attributed_time"), showProgress=F)
 
-set.seed(0)
-train <- train[sample(.N, 30e6), ]
-train <-fread('train_sample.csv', stringsAsFactors = FALSE, drop = c("attributed_time"), data.table = T, 
-              na.strings=c("NA","NaN","?", ""))
+train <- train %>%
+  mutate(wday = Weekday(click_time), hour = hour(click_time)) %>% 
+  select(-c(click_time)) %>%
+  add_count(ip, wday, hour) %>% rename("nip_day_h" = n) %>%
+  add_count(ip, hour, channel) %>% rename("nip_h_chan" = n) %>%
+  add_count(ip, hour, os) %>% rename("nip_h_osr" = n) %>%
+  add_count(ip, hour, app) %>% rename("nip_h_app" = n) %>%
+  add_count(ip, hour, device) %>% rename("nip_h_dev" = n) %>%
+  select(-c(ip))
+
+# Split half and half
+pos <- which(train$is_attributed==1)
+neg <- sample(which(train$is_attributed==0),length(pos))
+
+train_sample <- train[c(pos,neg),]
+rm(neg, pos, train)
+
+# InTrain
+inTrain <- createDataPartition(train_sample$app, p=.7, list=F)
+train_sample <- train_sample %>% lapply(as.numeric) %>% as_data_frame()
+y_train <- train_sample$is_attributed[inTrain]
+y_valid <- train_sample$is_attributed[-inTrain]
+# train_sample$is_attributed <- NULL
+train_val <- train_sample[inTrain,]
+valid_val <- train_sample[-inTrain,]
+
+rm(inTrain, train_sample)
+
+dtrain <- xgb.DMatrix(data = data.matrix(train_val), label = y_train)
+dval <- xgb.DMatrix(data = data.matrix(valid_val), label = y_valid)
+
+rm(); gc()
+
+params <- list(objective = "binary:logistic",
+               booster = "gbtree",
+               eval_metric = "auc",
+               nthread = 7,
+               eta = 0.05,
+               max_depth = 10,
+               gamma = 0.9,
+               subsample = 0.8,
+               colsample_bytree = 0.8,
+               scale_pos_weight = 50,
+               nrounds = 100)
+
+myxgb_model <- xgb.train(params, dtrain, params$nrounds, list(val = dval), print_every_n = 20, early_stopping_rounds = 50)
 
 
-#---------------------------
-cat("Preprocessing...\n")
-y <- train$is_attributed
-tri <- 1:nrow(train)
-tr_te <- rbind(train, test, fill = T)
+(xgb_pred <- predict(myxgb_model,newdata = dval))
 
-rm(train, test); gc()
+xgb_pred1 <- if_else(xgb_pred>=.5,1,0)
 
-train[, `:=`(hour = hour(click_time),
-             min = minute(click_time),
-             sec = second(click_time),
-             click_time = fastPOSIXct(click_time))
-      ][, next_clk := as.integer(click_time - shift(click_time))
-        ][, click_time := NULL
-          ][, ip_f := .N, by = "ip"
-            ][, app_f := .N, by = "app"
-              ][, channel_f := .N, by = "channel"
-                ][, device_f := .N, by = "device"
-                  ][, os_f := .N, by = "os"
-                    ][, app_f := .N, by = "app"
-                      ][, ip_app_f := .N, by = "ip,app"
-                        ][, ip_dev_f := .N, by = "ip,device"
-                          ][, ip_os_f := .N, by = "ip,os"
-                            ][, ip_chan_f := .N, by = "ip,channel"
-                              ][, c("ip", "is_attributed") := NULL]
+confusionMatrix(y_valid,xgb_pred1)
 
+(imp <- xgb.importance(colnames(train_val), model=myxgb_model))
 
-train %>% summary()
-train %>% dim()
-train %>% glimpse()
-train %>% group_by(device) %>% summarise(count=n())
-
-dtest <- xgb.DMatrix(data = data.matrix(tr_te[-tri]))
-tr_te <- tr_te[tri]; gc()
-tri <- caret::createDataPartition(y, p = 0.9, list = F)
-dtrain <- xgb.DMatrix(data = data.matrix(tr_te[tri]), label = y[tri])
-dval <- xgb.DMatrix(data = data.matrix(tr_te[-tri]), label = y[-tri])
-cols <- colnames(tr_te)
-
-rm(tr_te, y, tri); gc()
-
-#---------------------------
-cat("Training model...\n")
-p <- list(objective = "binary:logistic",
-          booster = "gbtree",
-          eval_metric = "auc",
-          nthread = 8,
-          eta = 0.07,
-          max_depth = 4,
-          min_child_weight = 96,
-          gamma = 6.1142,
-          subsample = 1,
-          colsample_bytree = 0.5962,
-          colsample_bylevel = 0.5214,
-          alpha = 0,
-          lambda = 21.0033,
-          max_delta_step = 5.0876,
-          scale_pos_weight = 150,
-          nrounds = 2000)
-
-m_xgb <- xgb.train(p, dtrain, p$nrounds, list(val = dval), print_every_n = 50, early_stopping_rounds = 150)
-
-(imp <- xgb.importance(cols, model=m_xgb))
 xgb.plot.importance(imp, top_n = 30)
 
-#---------------------------
-cat("Creating submission file...\n")
-subm <- fread("../input/sample_submission.csv") 
-subm[, is_attributed := round(predict(m_xgb, dtest), 6)]
-fwrite(subm, paste0("dt_xgb_", m_xgb$best_score, ".csv"))
+
+
+
+
 
