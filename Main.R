@@ -1,6 +1,18 @@
-pacman::p_load(GGally,ggthemes,lubridate,caret,tidyverse,e1071,gridExtra,data.table,rpart.plot,randomForest,rpart,ROSE,DMwR,xgboost)
+pacman::p_load(GGally, ggthemes,lubridate, caret, tidyverse,
+               e1071, gridExtra, data.table, rpart.plot, 
+               randomForest, rpart, ROSE, DMwR, xgboost)
 
-train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, na.strings=c("NA","NaN","?", ""))
+total_rows <- 184903890
+chunk_rows <- 40000000
+skiprows <- total_rows - chunk_rows 
+
+
+train <-fread('train.csv', stringsAsFactors = FALSE, showProgress=F,
+              skip=skiprows, nrows=chunk_rows, colClasses=list(numeric=1:5),
+              data.table = FALSE, na.strings=c("NA","NaN","?", ""))
+
+
+
 
 train %>% str()
 
@@ -13,7 +25,8 @@ unique_acc %>% ggplot(aes(reorder(var,-num),log(num),fill=var)) + geom_col() +
        y = "unique count (log)", caption="Source: Kaggle TalkingData Challenge") + 
   theme_economist() +
   theme(legend.position="none") +
-  geom_label(aes(label=num), col="white")
+  geom_label(aes(label=num), col="black") +
+  scale_fill_brewer(palette="Paired")
 
 rm(unique_acc)
 
@@ -26,12 +39,13 @@ train %>% select(is_attributed) %>% table()
 train %>% filter(is.na(attributed_time)) %>% select(is_attributed) %>% summary()
 train %>% filter(!is.na(attributed_time)) %>% select(is_attributed) %>% summary()
 
-train %>% filter(!attributed_time>click_time)
+train %>% filter(!attributed_time > click_time)
 
 train$click_time <- ymd_hms(train$click_time)
 train$attributed_time <- ymd_hms(train$attributed_time)
 
-attr_train <- train %>% filter(is_attributed==1) %>% mutate(wait_time=difftime(attributed_time,click_time))
+attr_train <- train %>% filter(is_attributed == 1) %>% 
+  mutate(wait_time=difftime(attributed_time,click_time))
 
 # attr_train %>% ggplot(aes(wait_time)) + geom_histogram(bins=100)
 
@@ -43,11 +57,12 @@ attr_train %>% ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,c
 attr_train %>% filter(wait_time<500) %>%  ggplot(aes(wait_time)) + geom_density(fill='firebrick',alpha=.7,col='firebrick') + 
   geom_vline(xintercept = 38, lwd=2, lty=2, alpha=.6)
 
-
-train <- train %>% mutate(wday=weekdays(as.Date(click_time)),hour=hour(click_time))
+rm(attr_train)
+train <- train %>% 
+  mutate(wday=weekdays(as.Date(click_time)),hour=hour(click_time))
 
 head(train)
-
+gc()
 
 
 
@@ -63,6 +78,7 @@ pos <- which(train$is_attributed==1)
 neg <- sample(which(train$is_attributed==0),length(pos))
 
 train_sample <- train[c(pos,neg),]
+rm(neg, pos)
 
 # train_sample %>% ggplot(aes(hour,fill=as.factor(is_attributed)))+geom_bar()
 # train_sample %>% ggplot(aes(wday,fill=as.factor(is_attributed)))+geom_bar()

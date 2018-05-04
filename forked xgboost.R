@@ -3,8 +3,8 @@ pacman::p_load(knitr, pryr, caTools, tidyverse, caret, data.table, lubridate, ti
 set.seed(84)               
 options(scipen = 9999, warn = -1, digits= 4)
 
-train_path <- "../input/train.csv"
-test_path  <- "../input/test.csv"
+train_path <- "train.csv"
+test_path  <- "test.csv"
 
 vars <- c("ip", "app", "device", "os", "channel", "click_time", "attributed_time", "is_attributed") 
 most_freq_hours_in_test_data <- c("4","5","9","10","13","14")

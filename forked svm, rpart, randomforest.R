@@ -1,6 +1,6 @@
 
 pacman::p_load(tidyverse, lubridate, caret, DMwR, ROSE, randomForest, rpart, 
-               rpart.plot, data.table, e1071, gridExtra)
+               rpart.plot, data.table, e1071, gridExtra, ggthemes, xgboost)
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
               na.strings=c("NA","NaN","?", ""))
@@ -40,13 +40,22 @@ train <- train %>% mutate(weekdays = as.factor(weekdays(click_time)),
 
 train %>% head()
 
+# Split half and half
+pos <- which(train$is_attributed==1)
+neg <- sample(which(train$is_attributed==0),length(pos))
 
+train_sample <- train[c(pos,neg),]
+rm(neg, pos)
+
+
+train_sample$click_time <- NULL
+train_sample$attributed_time <- NULL
 
 
 # InTrain
-inTrain <- createDataPartition(train$ip, p=.7, list=F)
-train_val <- train[inTrain,]
-valid_val <- train[-inTrain,]
+inTrain <- createDataPartition(train_sample$ip, p=.7, list=F)
+train_val <- train_sample[inTrain,]
+valid_val <- train_sample[-inTrain,]
 rm(inTrain)
 
 train_val$attributed_time <- NULL
@@ -70,12 +79,19 @@ confusionMatrix(valid_val$is_attributed, rf_pred)
 varImpPlot(rf_model)
 rm(rf_model,rf_pred)
 
+# xgboost
 
-# svm
-valid_val_svm <- valid_val
-valid_val_svm$is_attributed <- NA
-svm_model <- svm(is_attributed~., data = train_val, method = "class")
-svm_pred  <- predict(svm_model, newdata = valid_val_svm, type ="class")
-confusionMatrix(valid_val$is_attributed, svm_pred)
-rm(svm_model,svm_pred,valid_val_svm)
+(dtrain1 <- train_val[, colnames(train_val) != "is_attributed"])
+
+rownames(dtrain1) <- 1:nrow(dtrain1)
+
+dtrain1$weekdays <- as.numeric(dtrain1$weekdays)
+
+dtrain1 %>% str()
+
+dtrain <- xgb.DMatrix(as.matrix(dtrain1), 
+                      label = train_val$is_attributed)
+
+dvalid <- xgb.DMatrix(as.matrix(valid_val[, colnames(valid_val) != "is_attributed"]), 
+                      label = valid_val$is_attributed)
 
