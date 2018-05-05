@@ -1,9 +1,5 @@
 pacman::p_load(tidyverse, lubridate, caret, DMwR, ROSE, randomForest, rpart, 
-<<<<<<< HEAD
                rpart.plot, data.table, e1071, gridExtra, ggthemes, xgboost)
-=======
-               rpart.plot, data.table, e1071, gridExtra, ggthemes)
->>>>>>> a061bc46246b6cd960ed2039e1f76c80d5ffbe19
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
               na.strings=c("NA","NaN","?", ""))
@@ -54,6 +50,8 @@ rm(neg, pos)
 train_sample$click_time <- NULL
 train_sample$attributed_time <- NULL
 
+train_sample$weekdays <- train_sample$weekdays %>% as.factor() %>% as.numeric()
+
 
 # InTrain
 inTrain <- createDataPartition(train_sample$ip, p=.7, list=F)
@@ -85,17 +83,13 @@ rm(rf_model,rf_pred)
 # xgboost
 
 (dtrain1 <- train_val[, colnames(train_val) != "is_attributed"])
+(dvalid1 <- valid_val[, colnames(train_val) != "is_attributed"])
 
-rownames(dtrain1) <- 1:nrow(dtrain1)
-
-dtrain1$weekdays <- as.numeric(dtrain1$weekdays)
-
-dtrain1 %>% str()
 
 dtrain <- xgb.DMatrix(as.matrix(dtrain1), 
                       label = train_val$is_attributed)
 
-dvalid <- xgb.DMatrix(as.matrix(valid_val[, colnames(valid_val) != "is_attributed"]), 
-                      label = valid_val$is_attributed)
+dvalid <- xgb.DMatrix(as.matrix(dvalid1))
+                      # , label = valid_val$is_attributed)
 
-gc()
+

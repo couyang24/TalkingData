@@ -4,24 +4,21 @@ library(fasttime)
 
 #---------------------------
 cat("Loading data...\n")
-train <- fread("train.csv", drop = c("attributed_time"), showProgress=F)[(.N - 50e6):.N] 
+train <- fread("train_sample.csv", drop = c("attributed_time"), showProgress=F)
 test <- fread("../input/test.csv", drop = c("click_id"), showProgress=F)
 
 set.seed(0)
-train <- train[sample(.N, 30e6), ]
-train <-fread('train_sample.csv', stringsAsFactors = FALSE, drop = c("attributed_time"), data.table = T, 
-              na.strings=c("NA","NaN","?", ""))
-
 
 #---------------------------
 cat("Preprocessing...\n")
 y <- train$is_attributed
-tri <- 1:nrow(train)
-tr_te <- rbind(train, test, fill = T)
+tr_te <- train
+
+# rbind(train, test, fill = T)
 
 rm(train, test); gc()
 
-train[, `:=`(hour = hour(click_time),
+tr_te[, `:=`(hour = hour(click_time),
              min = minute(click_time),
              sec = second(click_time),
              click_time = fastPOSIXct(click_time))
@@ -39,11 +36,43 @@ train[, `:=`(hour = hour(click_time),
                             ][, ip_chan_f := .N, by = "ip,channel"
                               ][, c("ip", "is_attributed") := NULL]
 
+#---------------------------
+cat("Preparing data...\n")
 
-train %>% summary()
-train %>% dim()
-train %>% glimpse()
-train %>% group_by(device) %>% summarise(count=n())
+tri <- caret::createDataPartition(y, p = 0.9, list = F)
+tr_te <- lapply(tr_te, as.numeric) %>% as_data_frame()
+dtrain <- xgb.DMatrix(data = as.matrix(tr_te[tri,]), label = y[tri])
+dval <- xgb.DMatrix(data = data.matrix(tr_te[-tri,]), label = y[-tri])
+cols <- colnames(tr_te)
 
+rm(tr_te, y, tri); gc()
 
+#---------------------------
+cat("Training model...\n")
+p <- list(objective = "binary:logistic",
+          booster = "gbtree",
+          eval_metric = "auc",
+          nthread = 8,
+          eta = 0.07,
+          max_depth = 4,
+          min_child_weight = 24,
+          gamma = 36.7126,
+          subsample = 0.9821,
+          colsample_bytree = 0.3929,
+          colsample_bylevel = 0.6818,
+          alpha = 72.7519,
+          lambda = 5.4826,
+          max_delta_step = 5.7713,
+          scale_pos_weight = 94,
+          nrounds = 2000)
 
+m_xgb <- xgb.train(p, dtrain, p$nrounds, list(val = dval), print_every_n = 50, early_stopping_rounds = 150)
+
+(imp <- xgb.importance(cols, model=m_xgb))
+xgb.plot.importance(imp, top_n = 30)
+
+#---------------------------
+cat("Creating submission file...\n")
+subm <- fread("../input/sample_submission.csv") 
+subm[, is_attributed := round(predict(m_xgb, dtest), 6)]
+fwrite(subm, paste0("dt_xgb_", m_xgb$best_score, ".csv"))
