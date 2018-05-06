@@ -11,7 +11,12 @@ train <-fread('train.csv', stringsAsFactors = FALSE, showProgress=F,
               skip=skiprows, nrows=chunk_rows, colClasses=list(numeric=1:5),
               data.table = FALSE, na.strings=c("NA","NaN","?", ""))
 
+library(bigmemory)
 
+train <- read.big.matrix("train.csv", header = T, 
+                     type = 'char', 
+                     backingfile = "train.bin", 
+                     descriptorfile = "train.desc")
 
 
 train %>% str()

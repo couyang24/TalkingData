@@ -1,5 +1,9 @@
 pacman::p_load(tidyverse, lubridate, caret, DMwR, ROSE, randomForest, rpart, 
                rpart.plot, data.table, e1071, gridExtra, ggthemes, xgboost)
+<<<<<<< HEAD:forked svm, rpart, randomforest.R
+=======
+
+>>>>>>> 797a2384f6c7a3297c51f94366f3fa93efac9d58:Forked/forked svm, rpart, randomforest.R
 
 train <-fread('train_sample.csv', stringsAsFactors = FALSE, data.table = FALSE, 
               na.strings=c("NA","NaN","?", ""))
@@ -80,6 +84,7 @@ confusionMatrix(valid_val$is_attributed, rf_pred)
 varImpPlot(rf_model)
 rm(rf_model,rf_pred)
 
+<<<<<<< HEAD:forked svm, rpart, randomforest.R
 # xgboost
 
 (dtrain1 <- train_val[, colnames(train_val) != "is_attributed"])
@@ -92,4 +97,6 @@ dtrain <- xgb.DMatrix(as.matrix(dtrain1),
 dvalid <- xgb.DMatrix(as.matrix(dvalid1))
                       # , label = valid_val$is_attributed)
 
+=======
+>>>>>>> 797a2384f6c7a3297c51f94366f3fa93efac9d58:Forked/forked svm, rpart, randomforest.R
 

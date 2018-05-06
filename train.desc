@@ -1,0 +1,11 @@
+new("big.matrix.descriptor"
+    , description = structure(list(sharedType = "FileBacked", filename = "train.bin", 
+    dirname = "C:/Users/oouyang/Projects/TalkingData/", totalRows = 184903890L, 
+    totalCols = 8L, rowOffset = c(0, 184903890), colOffset = c(0, 
+    8), nrow = 184903890, ncol = 8, rowNames = NULL, colNames = c("ip", 
+    "app", "device", "os", "channel", "click_time", "attributed_time", 
+    "is_attributed"), type = "integer", separated = FALSE), .Names = c("sharedType", 
+"filename", "dirname", "totalRows", "totalCols", "rowOffset", 
+"colOffset", "nrow", "ncol", "rowNames", "colNames", "type", 
+"separated"))
+)
