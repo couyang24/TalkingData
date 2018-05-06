@@ -39,8 +39,13 @@ params <- list(objective = "binary:logistic",
                nrounds = 2000)
 
 xgb_model <- xgb.train(params, dtrain, params$nrounds, list(val = dval), 
+<<<<<<< HEAD
                        print_every_n = 100, early_stopping_rounds = 1000)
 rm(params, train_val, valid_val)
+=======
+                       print_every_n = 100, early_stopping_rounds = 300)
+rm(params)
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02
 
 xgb_pred <- predict(xgb_model,newdata = dval)
 
@@ -53,8 +58,11 @@ imp <- xgb.importance(colnames(train_val), model=xgb_model)
 imp %>% kable()
 
 xgb.plot.importance(imp, top_n = 30)
+<<<<<<< HEAD
 rm(params, xgb_pred, xgb_pred_result, xgb_model, imp, train_val, valid_val)
 
+=======
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02
 
 # xgboost 2
 params <- list( objective   = "binary:logistic", 
@@ -74,7 +82,11 @@ params <- list( objective   = "binary:logistic",
 
 xgb_model <- xgb.train(data = dtrain, params = params, 
                        silent = 1, watchlist = list(valid = dval), nthread = 4, 
+<<<<<<< HEAD
                        nrounds = 2000, print_every_n = 100, early_stopping_rounds = 1000)
+=======
+                       nrounds = 2000, print_every_n = 100, early_stopping_rounds = 300)
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02
 
 xgb_pred <- predict(xgb_model,newdata = dval)
 
@@ -95,4 +107,8 @@ sub[, is_attributed := xgb_pred]
 fwrite(sub, "xgb.csv")
 
 
+<<<<<<< HEAD
 rm(params, xgb_pred, xgb_pred_result, xgb_model, imp, train_val, valid_val)
+=======
+
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02

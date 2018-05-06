@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 pacman::p_load(knitr, tidyverse, highcharter, data.table,
                lubridate, pROC, tictoc, DescTools, xgboost)
+=======
+pacman::p_load(knitr, tidyverse, highcharter, data.table, lubridate, pROC, tictoc, DescTools, xgboost)
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02
 
 train <- fread("train_sample.csv", drop = c("attributed_time"), showProgress=F)
 
@@ -23,4 +27,11 @@ train <- train %>%
   add_count(ip, hour, os) %>% rename("ip_h_os" = n) %>%
   add_count(ip, hour, app) %>% rename("ip_h_app" = n) %>%
   add_count(ip, hour, device) %>% rename("ip_h_dev" = n) %>%
+<<<<<<< HEAD
   select(-c(ip))
+=======
+  add_count(ip, hour, device) %>% rename("ip_h_dev" = n) %>%
+  add_count(ip, hour, device) %>% rename("ip_h_dev" = n) %>%
+  add_count(ip, hour, device) %>% rename("ip_h_dev" = n) %>%
+  select(-c(ip))
+>>>>>>> 8915efd66ac6f3daefa8d946192fd9a68d45ce02
